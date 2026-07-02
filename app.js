@@ -37,8 +37,26 @@ window.addEventListener('error', function(e) {
   // CONSTANTS
   // ============================================================
   const STORAGE_KEY = 'mirage.courses.v2';
-  const SETTINGS_KEY = 'timeattacker.settings.v1';
-  const SESSIONS_KEY = 'timeattacker.sessions.v1';
+  const SETTINGS_KEY = 'wadachi.settings.v1';
+  const SESSIONS_KEY = 'wadachi.sessions.v1';
+
+  // ── 旧ブランド名 (timeattacker.*) → wadachi.* への一度限りの移行 ──
+  // 新キーが未使用かつ旧キーにデータがある場合のみコピーする（上書き事故防止）
+  // BLE キーはこの時点で未宣言(TDZ)のため文字列リテラルで直接指定する
+  (function migrateStorageKeys() {
+    const map = [
+      ['timeattacker.settings.v1', SETTINGS_KEY],
+      ['timeattacker.sessions.v1', SESSIONS_KEY],
+      ['timeattacker.ble.device.v1', 'wadachi.ble.device.v1'],
+    ];
+    try {
+      for (const [oldKey, newKey] of map) {
+        if (localStorage.getItem(newKey) != null) continue;
+        const old = localStorage.getItem(oldKey);
+        if (old != null) localStorage.setItem(newKey, old);
+      }
+    } catch (_) { /* ストレージ利用不可環境では何もしない */ }
+  })();
   const MAX_SESSIONS = 30;
   const TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
   const DEFAULT_CENTER = [35.6812, 139.7671];
@@ -190,6 +208,12 @@ window.addEventListener('error', function(e) {
 
   function uid() {
     return 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
+
+  function ordinal(n) {
+    const s = ['th', 'st', 'nd', 'rd'];
+    const v = n % 100;
+    return n + (s[(v - 20) % 10] || s[v] || s[0]);
   }
 
   function escapeHtml(s) {
@@ -367,7 +391,7 @@ window.addEventListener('error', function(e) {
     const session = {
       id: 'sess_' + uid(),
       courseId:   course?.id || null,
-      courseName: course?.name || '不明',
+      courseName: course?.name || 'Unknown',
       courseType: course?.type || 'circuit',
       startTime:  state.sessionStartTime,
       endTime:    Date.now(),
@@ -514,8 +538,8 @@ window.addEventListener('error', function(e) {
       const hasLines = c.startLine && (c.type === 'circuit' || c.finishLine);
       card.innerHTML = `
         <div>
-          <div class="name">${escapeHtml(c.name || '(No名コース)')}</div>
-          <div class="meta">${c.type === 'circuit' ? '周回' : 'P2P'} · ${sectionCount} セクター線 ${hasLines ? '' : '· 未完成'}</div>
+          <div class="name">${escapeHtml(c.name || '(Unnamed Course)')}</div>
+          <div class="meta">${c.type === 'circuit' ? 'Loop' : 'P2P'} · ${sectionCount} sector${sectionCount === 1 ? '' : 's'} ${hasLines ? '' : '· Incomplete'}</div>
         </div>
         <div class="right">
           <div class="best ${bestCls}">${best}</div>
@@ -532,7 +556,7 @@ window.addEventListener('error', function(e) {
   document.getElementById('btn-new-course').addEventListener('click', () => {
     const c = {
       id: uid(),
-      name: '新規コース',
+      name: 'New Course',
       type: 'circuit',
       duration: 0,
       cooldownS: DEFAULT_COOLDOWN_S,
@@ -608,7 +632,7 @@ window.addEventListener('error', function(e) {
 
   // ─── 横画面ダッシュボード設定 UI ───
   const DASH_LED_COLORS = ['green', 'yellow', 'red', 'blue', 'orange', 'white'];
-  const DASH_LED_LABELS = { green:'緑', yellow:'黄', red:'赤', blue:'青', orange:'橙', white:'白' };
+  const DASH_LED_LABELS = { green:'Green', yellow:'Yellow', red:'Red', blue:'Blue', orange:'Orange', white:'White' };
 
   function renderDashSettings(s) {
     const d = s.dash, v = s.vehicle;
@@ -673,16 +697,30 @@ window.addEventListener('error', function(e) {
       const dc = (d.dotConfig || [])[i] || { color:'green', threshold:1000 + i * 400 };
       const row = document.createElement('div');
       row.className = 'dash-dot-row';
-      const opts = DASH_LED_COLORS.map(c =>
-        `<option value="${c}" ${c === dc.color ? 'selected' : ''}>${DASH_LED_LABELS[c]}</option>`).join('');
+      const swatches = DASH_LED_COLORS.map(c =>
+        `<button type="button" class="led ${c} on dash-swatch${c === dc.color ? ' selected' : ''}" data-color="${c}" aria-label="${DASH_LED_LABELS[c]}" aria-pressed="${c === dc.color}"></button>`
+      ).join('');
       row.innerHTML =
         `<span class="dot-idx">#${i + 1}</span>` +
-        `<select class="dash-dot-color" data-i="${i}">${opts}</select>` +
+        `<div class="dash-dot-swatches" data-i="${i}">${swatches}</div>` +
         `<input type="number" class="dash-dot-th" data-i="${i}" step="50" inputmode="numeric" value="${dc.threshold}">` +
         `<span class="dot-unit">rpm</span>`;
       wrap.appendChild(row);
     }
   }
+
+  // スウォッチ選択（イベント委譲: 行の再構築後も再バインド不要）
+  document.getElementById('cfg-dash-dots')?.addEventListener('click', (e) => {
+    const btn = e.target.closest('.dash-swatch');
+    if (!btn) return;
+    const group = btn.closest('.dash-dot-swatches');
+    group.querySelectorAll('.dash-swatch').forEach(s => {
+      s.classList.remove('selected');
+      s.setAttribute('aria-pressed', 'false');
+    });
+    btn.classList.add('selected');
+    btn.setAttribute('aria-pressed', 'true');
+  });
 
   function renderDashGearRows(v) {
     const wrap = document.getElementById('cfg-dash-gears');
@@ -692,17 +730,17 @@ window.addEventListener('error', function(e) {
       const row = document.createElement('div');
       row.className = 'dash-gear-row';
       row.innerHTML =
-        `<span class="gear-idx">${i + 1}速</span>` +
+        `<span class="gear-idx">${ordinal(i + 1)}</span>` +
         `<input type="number" class="dash-gear-ratio" data-i="${i}" step="0.001" inputmode="decimal" value="${gr}">`;
       wrap.appendChild(row);
     });
   }
 
   function collectDashDots() {
-    const colors = [...document.querySelectorAll('.dash-dot-color')];
+    const groups = [...document.querySelectorAll('.dash-dot-swatches')];
     const ths    = [...document.querySelectorAll('.dash-dot-th')];
-    return colors.map((sel, i) => ({
-      color: sel.value,
+    return groups.map((g, i) => ({
+      color: g.querySelector('.dash-swatch.selected')?.dataset.color || 'green',
       threshold: parseInt(ths[i]?.value) || 0,
     }));
   }
@@ -817,7 +855,7 @@ window.addEventListener('error', function(e) {
     '000018f0-0000-1000-8000-00805f9b34fb',
     '0000ffe5-0000-1000-8000-00805f9b34fb',
   ];
-  const BLE_DEVICE_KEY = 'timeattacker.ble.device.v1';
+  const BLE_DEVICE_KEY = 'wadachi.ble.device.v1';
 
   function bleSleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
@@ -848,12 +886,12 @@ window.addEventListener('error', function(e) {
     if (ind && txt) {
       ind.classList.remove('connected', 'connecting', 'scanning', 'error');
       const statusMap = {
-        disconnected: '未接続',
-        scanning:     'スキャン中…',
+        disconnected: 'Disconnected',
+        scanning:     'Scanning…',
         connecting:   'Connecting…',
-        discovering:  'サービス検出中…',
-        connected:    '接続済み',
-        error:        '接続失敗',
+        discovering:  'Discovering services…',
+        connected:    'Connected',
+        error:        'Connection failed',
       };
       txt.textContent = statusMap[status] || status;
       if (status !== 'disconnected') ind.classList.add(status);
@@ -1166,15 +1204,15 @@ window.addEventListener('error', function(e) {
   //             9=rpm 10=coolant 11=oilTemp 12=intake 13=throttle
   const METRICS = [
     { key: 'speed',    label: 'SPEED',    col: 4,  unit: 'km/h', requiresObd: false, abs: false },
-    { key: 'line',     label: 'ライン',   col: -2, unit: '',     requiresObd: false, abs: false, lineMode: true },
-    { key: 'lat_g',    label: '横G',      col: 7,  unit: 'G',    requiresObd: false, abs: true  },
-    { key: 'lon_g',    label: '前後G',    col: 8,  unit: 'G',    requiresObd: false, abs: true  },
-    { key: 'combined_g', label: '合成G',  col: -1, unit: 'G',    requiresObd: false, abs: false, combined: true },
-    { key: 'rpm',      label: '回転数',   col: 9,  unit: 'rpm',  requiresObd: true,  abs: false },
-    { key: 'throttle', label: 'スロットル', col: 13, unit: '%',  requiresObd: true,  abs: false },
-    { key: 'coolant',  label: '水温',     col: 10, unit: '°C',   requiresObd: true,  abs: false },
-    { key: 'oilTemp',  label: '油温',     col: 11, unit: '°C',   requiresObd: true,  abs: false },
-    { key: 'intake',   label: '吸気温度', col: 12, unit: '°C',   requiresObd: true,  abs: false },
+    { key: 'line',     label: 'LINE',     col: -2, unit: '',     requiresObd: false, abs: false, lineMode: true },
+    { key: 'lat_g',    label: 'LAT G',    col: 7,  unit: 'G',    requiresObd: false, abs: true  },
+    { key: 'lon_g',    label: 'LON G',    col: 8,  unit: 'G',    requiresObd: false, abs: true  },
+    { key: 'combined_g', label: 'COMBINED G', col: -1, unit: 'G', requiresObd: false, abs: false, combined: true },
+    { key: 'rpm',      label: 'RPM',      col: 9,  unit: 'rpm',  requiresObd: true,  abs: false },
+    { key: 'throttle', label: 'THROTTLE', col: 13, unit: '%',  requiresObd: true,  abs: false },
+    { key: 'coolant',  label: 'COOLANT',  col: 10, unit: '°C',   requiresObd: true,  abs: false },
+    { key: 'oilTemp',  label: 'OIL TEMP', col: 11, unit: '°C',   requiresObd: true,  abs: false },
+    { key: 'intake',   label: 'INTAKE',   col: 12, unit: '°C',   requiresObd: true,  abs: false },
   ];
 
   // 複数ラップ重ね合わせ時のラップ色（高コントラスト）
@@ -1535,7 +1573,7 @@ window.addEventListener('error', function(e) {
     const wrap = document.getElementById('lap-chips');
     wrap.innerHTML = '';
 
-    // 完走ラップがNoい場合: Delete “All data」チップのみ
+    // 完走ラップが無い場合: 「All data」チップのみ
     if (s.laps.length === 0) {
       const chip = document.createElement('button');
       chip.className = 'chip active';
@@ -1830,7 +1868,7 @@ window.addEventListener('error', function(e) {
   // PLAYBACK SIMULATION (走行再生シミュレーション)
   //   ・選択中ラップの軌跡を、記録タイムスタンプに忠実な速度でドット再生
   //   ・音楽プレイヤー風 UI: 再生/一時停止・停止・シークバー・再生速度
-  //   ・BEST トグルでDelete “同コースのベスト記録」をゴーストドットとして同時再生
+  //   ・BEST トグルで「同コースのベスト記録」をゴーストドットとして同時再生
   // ============================================================
   const playback = {
     track: [],        // メイン走行 [{lat,lon,t(相対ms),v(km/h)}]
@@ -2003,7 +2041,7 @@ window.addEventListener('error', function(e) {
         }
         const bi = playback.ghostInfo;
         const label = bi
-          ? `BEST ${formatTime(bi.totalMs)} (${bi.dateLabel}${bi.isSelf ? '・本走行' : ''})`
+          ? `BEST ${formatTime(bi.totalMs)} (${bi.dateLabel}${bi.isSelf ? ' · this run' : ''})`
           : 'BEST';
         infoParts.push(`<span class="pb-dot-ghost">●</span> ${label} ${g.v != null ? g.v.toFixed(1) + ' km/h' : '--'}`);
       }
@@ -2130,7 +2168,7 @@ window.addEventListener('error', function(e) {
     listEl.innerHTML = '';
 
     if (s.laps.length === 0) {
-      listEl.innerHTML = '<div class="splits-empty" style="padding:18px;text-align:center;color:var(--fg-faint);line-height:1.7">完走ラップなし<br><span style="font-size:11px;opacity:0.7">P2P または未完走 — マップ上に全走 rowsデータを表示中</span></div>';
+      listEl.innerHTML = '<div class="splits-empty" style="padding:18px;text-align:center;color:var(--fg-faint);line-height:1.7">No completed laps<br><span style="font-size:11px;opacity:0.7">P2P or incomplete — showing full track data on the map</span></div>';
       return;
     }
 
@@ -2208,7 +2246,7 @@ window.addEventListener('error', function(e) {
     const stamp = new Date(s.startTime).toISOString().slice(0, 19).replace(/[:T]/g, '-');
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `timeattacker_${(s.courseName || 'session').replace(/\s+/g, '_')}_${stamp}.csv`;
+    a.download = `wadachi_${(s.courseName || 'session').replace(/\s+/g, '_')}_${stamp}.csv`;
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     toast(`CSV exported: ${s.rows.length} rows`);
@@ -2228,7 +2266,7 @@ window.addEventListener('error', function(e) {
   // ============================================================
   // OBD2 PID ポーリング & パース (Phase 2)
   // ============================================================
-  // 設定された PID をDelete “高速」Delete “低速」に振り分け、高速は毎サイクル送信、
+  // 設定された PID を「高速」「低速」に振り分け、高速は毎サイクル送信、
   // 低速はラウンドロビンで1つずつ送信する
   // ── 高速: RPM (動きの激しい値、高頻度で必要)
   // ── 低速: 水温 / 油温 / 吸気温 / スロットル (値の変化が緩やか)
@@ -2640,7 +2678,7 @@ window.addEventListener('error', function(e) {
       if (chip) {
         const st = state.obd.status || 'disconnected';
         chip.textContent = st === 'connected' ? 'Connected'
-                        : st === 'connecting' ? 'Connecting…' : '未接続';
+                        : st === 'connecting' ? 'Connecting…' : 'Disconnected';
         chip.classList.toggle('ok', st === 'connected');
       }
       // GPS 精度ミラー
@@ -2770,7 +2808,7 @@ window.addEventListener('error', function(e) {
   let _lastOkParseAt = 0;
   // 加えて 30 秒以上パース成功なし、の場合のみ発動
   const NO_DATA_BACKOFF_MS = 30000;
-  // Delete “?」応答カウンタ：5 回連続で ATSP6 再送
+  // 「?」応答カウンタ：5 回連続で ATSP6 再送
   let _questionCount = 0;
   let _protoReinitInProgress = false;
   let _keepAliveTimer = null;
@@ -3041,7 +3079,7 @@ window.addEventListener('error', function(e) {
       state.editPendingMarker = L.circleMarker(latlng, {
         radius: 6, color: '#ffb000', fillColor: '#ffb000', fillOpacity: 0.5, weight: 2
       }).addTo(state.editMap);
-      setStatus('2点目をマップ上でタップ', 'warn');
+      setStatus('Tap the second point on the map', 'warn');
     } else {
       const line = [state.editPendingPoint, latlng];
       if (state.editPendingMarker) {
@@ -3066,7 +3104,7 @@ window.addEventListener('error', function(e) {
       saveCourses();
       redrawEditLines();
       setEditMode(null);
-      setStatus('線をSaved', 'ok');
+      setStatus('Gate saved', 'ok');
     }
   }
 
@@ -3081,8 +3119,8 @@ window.addEventListener('error', function(e) {
     }
     state.editPendingPoint = null;
     if (mode) {
-      const labels = { start: 'スタート線', finish: 'フィニッシュ線', section: 'セクター線' };
-      setStatus(`${labels[mode]}: 1点目をマップ上でタップ`, 'warn');
+      const labels = { start: 'Start', finish: 'Finish', section: 'Sector' };
+      setStatus(`${labels[mode]}: tap the first point on the map`, 'warn');
     } else {
       setStatus('Select a gate type from the buttons above', '');
     }
@@ -3104,7 +3142,7 @@ window.addEventListener('error', function(e) {
 
   document.getElementById('course-name').addEventListener('change', e => {
     const c = getActiveCourse();
-    if (c) { c.name = e.target.value.trim() || 'No名コース'; saveCourses(); }
+    if (c) { c.name = e.target.value.trim() || 'Unnamed Course'; saveCourses(); }
   });
 
   document.getElementById('circuit-toggle').addEventListener('change', e => {
@@ -3226,7 +3264,7 @@ window.addEventListener('error', function(e) {
       row.innerHTML = `
         <span class="name">${escapeHtml(s.name || `S${idx + 1}`)}</span>
         <input class="target" type="text" inputmode="numeric" placeholder="MMSS.CC" value="${targetText}" />
-        <button class="del">削除</button>
+        <button class="del">Delete</button>
       `;
       const inp = row.querySelector('input.target');
       inp.addEventListener('input', () => {
@@ -3253,14 +3291,14 @@ window.addEventListener('error', function(e) {
       });
       row.querySelector('.del').addEventListener('click', () => {
         const name = s.name || `S${idx + 1}`;
-        if (!confirm(`Delete “${name}”?`)) return;
+        if (!confirm(`Delete sector “${name}”?`)) return;
         c.sections.splice(idx, 1);
         c.sections.forEach((sec, i) => { if (!sec.name || /^S\d+$/.test(sec.name)) sec.name = `S${i + 1}`; });
         c.bestLap = null;
         saveCourses();
         renderSectionsEdit();
         redrawEditLines();
-        toast(`Delete “${name}” deleted`);
+        toast(`Sector “${name}” deleted`);
       });
       list.appendChild(row);
     });
@@ -3276,7 +3314,7 @@ window.addEventListener('error', function(e) {
       fsRow.innerHTML = `
         <span class="name" style="color:#4fc3f7;">${fsLabel}</span>
         <input class="target" type="text" inputmode="numeric" placeholder="MMSS.CC" value="${fsText}" />
-        <button class="del" style="visibility:hidden;" tabindex="-1">削除</button>
+        <button class="del" style="visibility:hidden;" tabindex="-1">Delete</button>
       `;
       const fsInp = fsRow.querySelector('input.target');
       fsInp.addEventListener('input', () => {
@@ -3316,7 +3354,7 @@ window.addEventListener('error', function(e) {
     if (!c) return;
 
     document.getElementById('drive-course-name').textContent = c.name;
-    setDriveState('準備中', '');
+    setDriveState('Ready', '');
     resetDriveMetrics();
     renderSplitsGrid();
 
@@ -3421,7 +3459,7 @@ window.addEventListener('error', function(e) {
       btn.textContent = 'RUN';
       btn.className = 'big-action running';
 
-      setDriveState('スタート線通過待ち', 'armed');
+      setDriveState('Waiting for start line', 'armed');
       startGPS();
       requestWakeLock();
       startTimerLoop();
@@ -3453,7 +3491,7 @@ window.addEventListener('error', function(e) {
   function finishSession() {
     state.driveActive = false;
     state.lapStarted = false;
-    setDriveState('完了', 'finished');
+    setDriveState('Finished', 'finished');
     stopGPS();
     releaseWakeLock();
     const btn = document.getElementById('btn-start-stop');
@@ -3712,7 +3750,7 @@ window.addEventListener('error', function(e) {
     state.sectionStartT = crossT;
     state.currentLapSplits = [];
     state.currentSectorIdx = 0;
-    setDriveState('計測中', 'running');
+    setDriveState('Recording', 'running');
     toast('▶ Session started');
     const c = getActiveCourse();
     document.getElementById('best-delta-display').classList.toggle('hidden', !c.bestLap);
@@ -4546,7 +4584,7 @@ window.addEventListener('error', function(e) {
     const dt = new Date();
     const stamp = dt.toISOString().replace(/[:.]/g, '-').slice(0, 19);
     a.href = url;
-    a.download = `timeattacker_${(c?.name || 'session').replace(/\s+/g, '_')}_${stamp}.csv`;
+    a.download = `wadachi_${(c?.name || 'session').replace(/\s+/g, '_')}_${stamp}.csv`;
     document.body.appendChild(a);
     a.click();
     setTimeout(() => {
