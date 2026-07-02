@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+  <meta name="theme-color" content="#0a0c10" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>WADACHI</title>
+
+  <link rel="manifest" href="manifest.json" />
+
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <link rel="stylesheet" href="styles.css?v=3.1.0" />
+</head>
+<body>
+
+  <!-- ====== SPLASH SCREEN (2秒表示後に注意事項へ自動遷移) ====== -->
+  <section id="screen-splash" class="screen active">
+    <div class="splash-container">
+      <div class="splash-name">WADACHI</div>
+      <div class="splash-maker">藤井工藝</div>
+      <div class="splash-ver">Ver.4.0</div>
+    </div>
+  </section>
+
+  <!-- ====== WARNING SCREEN (first screen on every startup) ====== -->
+  <section id="screen-warning" class="screen">
+    <div class="warning-container">
+      <div class="warning-brand">
+        <div class="wb-name">WADACHI</div>
+        <div class="wb-maker">藤井工藝</div>
+        <div class="wb-ver">Ver.3.0</div>
+      </div>
+
+      <div class="warning-card">
+        <div class="warning-title">IMPORTANT NOTICE</div>
+        <div class="warning-body">
+Do not operate while driving.
+After pressing START, timing begins automatically when you cross the start line.
+Set everything up before you start driving.
+Never stare at the screen while driving.
+Distracted driving is extremely dangerous.
+Measurements use GPS,
+so accuracy may vary depending on conditions.</div>
+      </div>
+
+      <div class="warning-card">
+        <div class="warning-title">【WARNING】</div>
+        <div class="warning-body">
+Do not operate this application while driving.
+After pressing the START button,
+measurement will automatically begin when passing the configured point.
+Please complete all settings before driving.
+Do not stare at the screen while driving.
+Distracted driving is extremely dangerous.
+This application uses GPS measurement,
+so inaccuracies may occur depending on the environment.</div>
+      </div>
+
+      <button id="btn-warning-ok" class="btn-primary big"
+        onclick="document.getElementById('screen-warning').classList.remove('active');document.getElementById('screen-home').classList.add('active');return false;">OK</button>
+    </div>
+  </section>
+
+
+  <!-- ====== HOME SCREEN ====== -->
+  <section id="screen-home" class="screen">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark">◢</span>
+        <span class="brand-name">WADACHI</span>
+      </div>
+      <div class="brand-meta">
+        <span class="bm-maker">藤井工藝</span>
+        <span class="bm-ver">Ver.3.0</span>
+      </div>
+      <button id="btn-open-history" class="text-btn history-btn" title="History">History</button>
+      <button id="btn-open-settings" class="icon-btn settings-btn" title="Settings">⚙</button>
+    </header>
+
+    <main class="home-main">
+      <div class="section-title">
+        <span class="dot"></span>
+        <span>COURSES</span>
+      </div>
+
+      <div id="course-list" class="course-list"></div>
+
+      <button id="btn-new-course" class="btn-primary big">
+        <span class="plus">+</span>
+        <span>Create New Course</span>
+      </button>
+
+      <div class="hint">
+        Draw lines on the map to define start / finish / sector gates.
+      </div>
+    </main>
+  </section>
+
+  <!-- ====== SETTINGS SCREEN ====== -->
+  <section id="screen-settings" class="screen">
+    <header class="topbar">
+      <button class="icon-btn" data-action="back-home" id="btn-settings-back">‹</button>
+      <div class="brand">
+        <span class="brand-name">SETTINGS</span>
+      </div>
+      <div class="brand-meta"><span class="bm-ver">Settings</span></div>
+    </header>
+
+    <main class="settings-main">
+
+      <!-- ── OBD2 接続 ─────────────────────────── -->
+      <div class="settings-section">
+        <div class="section-title">
+          <span class="dot"></span>
+          <span>OBD2 Connection</span>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-label">
+            <div class="setting-name">Connection Mode</div>
+          </div>
+          <div class="seg-toggle" data-key="obdMode">
+            <button class="seg-btn"        data-value="single">Single</button>
+            <button class="seg-btn active"  data-value="double">Double</button>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-label">
+            <div class="setting-name">Auto Reconnect</div>
+            <div class="setting-desc">Automatically recover when the link drops</div>
+          </div>
+          <div class="seg-toggle" data-key="obdAutoReconnect">
+            <button class="seg-btn active" data-value="on">ON</button>
+            <button class="seg-btn"       data-value="off">OFF</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Data Channels ─────────────────────────── -->
+      <div class="settings-section">
+        <div class="section-title">
+          <span class="dot"></span>
+          <span>Data Channels</span>
+        </div>
+
+        <label class="check-row">
+          <input type="checkbox" id="cb-pid-rpm" checked>
+          <span class="check-text">
+            <span class="check-name">RPM</span>
+            <span class="check-desc">rpm</span>
+          </span>
+        </label>
+
+        <label class="check-row">
+          <input type="checkbox" id="cb-pid-coolant" checked>
+          <span class="check-text">
+            <span class="check-name">Coolant Temp</span>
+            <span class="check-desc">°C</span>
+          </span>
+        </label>
+
+        <label class="check-row">
+          <input type="checkbox" id="cb-pid-oiltemp" checked>
+          <span class="check-text">
+            <span class="check-name">Oil Temp</span>
+            <span class="check-desc">°C</span>
+          </span>
+        </label>
+
+        <label class="check-row">
+          <input type="checkbox" id="cb-pid-intake" checked>
+          <span class="check-text">
+            <span class="check-name">Intake Temp</span>
+            <span class="check-desc">°C</span>
+          </span>
+        </label>
+
+        <label class="check-row">
+          <input type="checkbox" id="cb-pid-throttle" checked>
+          <span class="check-text">
+            <span class="check-name">Throttle</span>
+            <span class="check-desc">%</span>
+          </span>
+        </label>
+
+      </div>
+
+      <!-- ── G-ball Settings ───────────────────────── -->
+      <div class="settings-section">
+        <div class="section-title">
+          <span class="dot"></span>
+          <span>G-ball Settings</span>
+        </div>
+
+        <!-- MAX G 入力 -->
+        <div class="num-row">
+          <label class="num-label">Max G</label>
+          <input type="number" id="cfg-gball-range" step="0.5" min="0.5" max="5"
+                 class="num-input" value="2.0">
+        </div>
+        <div style="font-size:11px;color:#7a8499;margin:-4px 0 8px;line-height:1.5;">
+          G value represented by the edge of the ball circle
+        </div>
+
+        <!-- モード切替 -->
+        <div class="setting-row">
+          <div class="setting-label">
+            <div class="setting-name">Display Mode</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button id="cfg-gball-vec" class="seg-btn active"
+                    style="flex:1;padding:8px 12px;border-radius:8px;white-space:nowrap;min-width:5em;display:flex;align-items:center;justify-content:center;text-align:center;">Vector</button>
+            <button id="cfg-gball-ine" class="seg-btn"
+                    style="flex:1;padding:8px 12px;border-radius:8px;white-space:nowrap;min-width:5em;display:flex;align-items:center;justify-content:center;text-align:center;">Inertia</button>
+          </div>
+        </div>
+        <div style="font-size:11px;color:#7a8499;margin:4px 0 0;line-height:1.5;">
+          Vector: shows G directly / Inertia: physics-based rolling ball
+        </div>
+      </div>
+
+      <!-- ── Landscape Dashboard (GT DASH) ─────── -->
+      <div class="settings-section">
+        <div class="section-title">
+          <span class="dot"></span>
+          <span>Landscape Dashboard (GT DASH)</span>
+        </div>
+
+        <label class="setting-row checkbox-row">
+          <input type="checkbox" id="cfg-dash-enabled" checked>
+          <span class="setting-label">
+            <span class="setting-name">Show dashboard in landscape</span>
+            <span class="setting-desc">Rotate the device during a session to switch to a GT DASH-style layout</span>
+          </span>
+        </label>
+
+        <div class="dash-subtitle">Boost Display (Turbo)</div>
+        <label class="setting-row checkbox-row">
+          <input type="checkbox" id="cfg-dash-boost" checked>
+          <span class="setting-label">
+            <span class="setting-name">Boost Bar</span>
+            <span class="setting-desc">Turn OFF for NA engines (also stops PID 010B polling)</span>
+          </span>
+        </label>
+        <div class="num-row">
+          <label class="num-label">MIN [kg/cm²]</label>
+          <input type="number" id="cfg-dash-boostmin" class="num-input" step="0.1" min="-1.0" max="0" inputmode="decimal">
+        </div>
+        <div class="num-row">
+          <label class="num-label">MAX [kg/cm²]</label>
+          <input type="number" id="cfg-dash-boostmax" class="num-input" step="0.1" min="0.5" max="5.0" inputmode="decimal">
+        </div>
+
+        <div class="dash-subtitle">LED Shift Lights</div>
+        <div class="num-row">
+          <label class="num-label">MAX RPM</label>
+          <input type="number" id="cfg-dash-maxrpm" class="num-input" step="100" inputmode="numeric">
+        </div>
+        <div class="num-row">
+          <label class="num-label">Warning RPM</label>
+          <input type="number" id="cfg-dash-warnrpm" class="num-input" step="100" inputmode="numeric">
+        </div>
+        <div class="dash-hint">All LEDs flash above the warning RPM</div>
+        <div class="num-row">
+          <label class="num-label">LED Count</label>
+          <input type="number" id="cfg-dash-dotcount" class="num-input" min="4" max="20" step="1" inputmode="numeric">
+        </div>
+        <button id="btn-dash-autodist" class="btn-secondary dash-autodist">Distribute Thresholds Evenly</button>
+        <div id="cfg-dash-dots" class="dash-dot-list"></div>
+
+        <div class="dash-subtitle">Gear Detection / Drivetrain</div>
+        <div class="num-row">
+          <label class="num-label">Speed Source</label>
+          <select id="cfg-dash-gearsrc" class="num-input" style="width:auto;min-width:9em;">
+            <option value="gps">GPS (no extra PID)</option>
+            <option value="obd">OBD Speed (010D)</option>
+          </select>
+        </div>
+        <div class="dash-hint">GPS: zero bus load, 1 Hz update / OBD: faster response, +1 PID on the bus</div>
+        <div class="num-row">
+          <label class="num-label">Final Drive</label>
+          <input type="number" id="cfg-dash-finaldrive" class="num-input" step="0.001" inputmode="decimal">
+        </div>
+        <div class="num-row">
+          <label class="num-label">Tire Diameter [mm]</label>
+          <input type="number" id="cfg-dash-tirediam" class="num-input" step="1" inputmode="numeric">
+        </div>
+        <div class="num-row">
+          <label class="num-label">Gears</label>
+          <input type="number" id="cfg-dash-gearcount" class="num-input" min="3" max="10" step="1" inputmode="numeric">
+        </div>
+        <div id="cfg-dash-gears" class="dash-gear-list"></div>
+        <div class="num-row">
+          <label class="num-label">Tolerance [%]</label>
+          <input type="number" id="cfg-dash-tolerance" class="num-input" min="3" max="20" step="1" inputmode="numeric">
+        </div>
+        <div class="dash-hint">Defaults are official Mini F56 JCW AT (6-speed Aisin) figures</div>
+      </div>
+
+      <!-- ── Connected Device ───────────────────────── -->
+      <div class="settings-section">
+        <div class="section-title">
+          <span class="dot"></span>
+          <span>Connected Device</span>
+        </div>
+
+        <div class="ble-status-row">
+          <div class="ble-status-indicator" id="ble-status-indicator">
+            <span class="ble-dot"></span>
+            <span class="ble-status-text" id="ble-status-text">Disconnected</span>
+          </div>
+          <div class="ble-device-name" id="ble-device-name"></div>
+        </div>
+
+        <div class="ble-actions">
+          <button id="btn-ble-scan" class="btn-primary">Scan &amp; Connect BLE</button>
+          <button id="btn-ble-reconnect" class="btn-ghost" style="display:none">Reconnect to last device</button>
+          <button id="btn-ble-disconnect" class="btn-ghost" style="display:none">Disconnect</button>
+        </div>
+
+        <div class="ble-hint" id="ble-hint">
+          Works with ELM327-compatible adapters such as UniCarScan 2000. Android Chrome recommended.
+        </div>
+
+        <!-- OBD デバッグパネル（接続後に表示） -->
+        <div class="obd-debug-panel" id="obd-debug-panel" style="display:none">
+          <div class="obd-debug-title">▸ OBD DEBUG</div>
+          <div class="obd-debug-row"><span>Status</span><span id="dbg-status" class="dbg-val">--</span></div>
+          <div class="obd-debug-row"><span>Last raw</span><span id="dbg-raw" class="dbg-val">--</span></div>
+          <div class="obd-debug-row"><span>RX count</span><span id="dbg-count" class="dbg-val">0</span></div>
+          <div class="obd-debug-row"><span>Parsed</span><span id="dbg-ok" class="dbg-val">0</span></div>
+          <div class="obd-debug-row"><span>Timeouts</span><span id="dbg-timeout" class="dbg-val">0</span></div>
+          <div class="obd-debug-row"><span>STOPPED streak</span><span id="dbg-stopped" class="dbg-val">0</span></div>
+          <div class="obd-debug-row"><span>RPM</span><span id="dbg-rpm" class="dbg-val">--</span></div>
+          <div class="obd-debug-row"><span>Coolant</span><span id="dbg-coolant" class="dbg-val">--</span></div>
+          <div class="obd-debug-row"><span>Oil</span><span id="dbg-oil" class="dbg-val">--</span></div>
+          <button id="btn-toggle-dbg-overlay" class="btn-secondary"
+                  style="margin-top:10px;width:100%;padding:8px;font-size:13px;">
+            Toggle raw log overlay
+          </button>
+        </div>
+      </div>
+
+      <div class="settings-foot">
+        <button id="btn-settings-save" class="btn-primary big">Save</button>
+      </div>
+
+    </main>
+  </section>
+
+  <!-- ====== HISTORY SCREEN (History一覧) ====== -->
+  <section id="screen-history" class="screen">
+    <header class="topbar">
+      <button class="icon-btn" data-action="back-home" id="btn-history-back">‹</button>
+      <div class="brand">
+        <span class="brand-name">HISTORY</span>
+      </div>
+      <div class="brand-meta"><span class="bm-ver">History</span></div>
+    </header>
+
+    <main class="history-main">
+      <div id="history-list" class="history-list"></div>
+      <div id="history-empty" class="history-empty hidden">
+        No sessions yet.<br>Completed sessions are saved here automatically.
+      </div>
+    </main>
+  </section>
+
+  <!-- ====== SESSION DETAIL SCREEN (個別セッション) ====== -->
+  <section id="screen-session" class="screen">
+    <header class="topbar">
+      <button class="icon-btn" id="btn-session-back">‹</button>
+      <div class="brand">
+        <span class="brand-name" id="session-course-name">--</span>
+      </div>
+      <div class="brand-meta"><span class="bm-ver" id="session-date">--</span></div>
+    </header>
+
+    <main class="session-main">
+      <!-- サマリ -->
+      <div class="session-summary">
+        <div class="summary-item">
+          <div class="summary-label">LAPS</div>
+          <div class="summary-value" id="session-lap-count">0</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">BEST</div>
+          <div class="summary-value accent" id="session-best">--:--.---</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">DURATION</div>
+          <div class="summary-value" id="session-duration">--</div>
+        </div>
+        <div class="summary-item" id="session-obd-flag">
+          <div class="summary-label">OBD</div>
+          <div class="summary-value">--</div>
+        </div>
+      </div>
+
+      <!-- 分析マップ -->
+      <div class="analysis-map-wrap">
+        <div id="session-map" class="analysis-map"></div>
+        <div id="session-map-empty" class="analysis-map-empty hidden">No GPS data</div>
+      </div>
+
+      <!-- 再生シミュレーション（音楽プレイヤー風） -->
+      <div class="playback-bar" id="playback-bar">
+        <div class="pb-controls">
+          <button id="pb-play" class="pb-btn pb-main" title="Play / Pause">▶</button>
+          <button id="pb-stop" class="pb-btn" title="Stop">■</button>
+          <input type="range" id="pb-seek" class="pb-seek" min="0" max="1000" step="1" value="0" />
+          <span class="pb-time"><span id="pb-cur">0:00.0</span><span class="pb-sep">/</span><span id="pb-total">0:00.0</span></span>
+          <button id="pb-speed" class="pb-btn pb-speed" title="Playback speed">×1</button>
+          <button id="pb-ghost" class="pb-btn pb-ghost" title="Compare with best">BEST</button>
+        </div>
+        <div class="pb-info" id="pb-info"></div>
+      </div>
+
+      <!-- メトリック選択 -->
+      <div class="analysis-controls">
+        <div class="control-row">
+          <div class="control-label">Metric</div>
+          <div id="metric-chips" class="chip-row"></div>
+        </div>
+
+        <!-- セクターSector選択 -->
+        <div class="control-row">
+          <div class="control-label">Sector</div>
+          <div id="sector-chips" class="chip-row"></div>
+        </div>
+
+        <!-- Compare走行選択（同コースの別走行） -->
+        <div class="control-row" id="compare-row">
+          <div class="control-label">Compare</div>
+          <div id="compare-chips" class="chip-row"></div>
+        </div>
+
+        <!-- Laps選択（複数選択可） -->
+        <div class="control-row">
+          <div class="control-label">Laps</div>
+          <div id="lap-chips" class="chip-row"></div>
+        </div>
+
+        <!-- カラースケールLegend -->
+        <div class="legend-row" id="legend-row">
+          <span class="legend-label">Legend</span>
+          <div class="legend-gradient" id="legend-gradient"></div>
+          <span id="legend-min" class="legend-tick">--</span>
+          <span id="legend-max" class="legend-tick">--</span>
+        </div>
+      </div>
+
+      <!-- 時系列グラフ -->
+      <div class="analysis-graph-wrap">
+        <canvas id="analysis-graph" class="analysis-graph"></canvas>
+      </div>
+
+      <!-- Laps一覧 -->
+      <div class="section-title"><span class="dot"></span><span>Lap Times</span></div>
+      <div id="session-lap-list" class="session-lap-list"></div>
+
+      <!-- 操作ボタン -->
+      <div class="session-actions">
+        <button id="btn-session-export" class="btn-ghost">Export CSV</button>
+        <button id="btn-session-delete" class="btn-ghost danger">Delete Session</button>
+      </div>
+    </main>
+  </section>
+
+  <!-- ====== EDIT SCREEN ====== -->
+  <section id="screen-edit" class="screen">
+    <header class="topbar">
+      <button class="icon-btn" data-action="back-home">‹</button>
+      <input id="course-name" class="course-name-input" type="text" placeholder="Course name" />
+      <button class="icon-btn" data-action="edit-settings" title="Details">⚙</button>
+      <button class="icon-btn" data-action="delete-course" title="Delete">✕</button>
+    </header>
+
+    <div class="edit-mode-bar">
+      <button class="mode-btn" data-mode="start">Start</button>
+      <button class="mode-btn" data-mode="finish">Finish</button>
+      <button class="mode-btn" data-mode="section">Sector</button>
+      <button class="icon-btn locate-btn" data-action="locate-me" title="Locate me">⌖</button>
+      <div class="course-type">
+        <label>
+          <input type="checkbox" id="circuit-toggle" />
+          <span>Loop</span>
+        </label>
+      </div>
+    </div>
+
+    <div id="edit-status" class="status-strip">Draw a line on the map</div>
+
+    <div id="map-edit" class="map"></div>
+
+    <div class="bottom-bar">
+      <button id="btn-clear-section" class="btn-ghost">Clear All Sectors</button>
+      <button id="btn-start-drive" class="btn-primary">START ▶</button>
+    </div>
+  </section>
+
+  <!-- ====== DETAIL MODAL ====== -->
+  <div id="modal-detail" class="modal">
+    <div class="modal-sheet">
+      <header class="modal-header">
+        <h3>Course Settings</h3>
+      </header>
+      <div class="modal-body">
+
+        <div class="form-row">
+          <label>Session Duration (min)</label>
+          <input id="cfg-duration" type="number" inputmode="numeric" min="0" step="1" placeholder="0 = unlimited" />
+        </div>
+
+        <div class="form-row">
+          <label>Cooldown (sec)</label>
+          <input id="cfg-cooldown" type="number" inputmode="decimal" min="0" step="0.1" />
+        </div>
+
+        <div class="form-row">
+          <label>GPS Accuracy Filter (m)</label>
+          <input id="cfg-acc" type="number" inputmode="numeric" min="0" step="1" />
+        </div>
+
+        <div class="form-row">
+          <label>Heading Filter</label>
+          <label class="switch">
+            <input id="cfg-dirfilter" type="checkbox" />
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="hint-block">
+          Accuracy filter 0 = disabled<br>
+          Heading filter ON: ignores passes opposite to the first crossing direction
+        </div>
+
+        <div class="form-divider"></div>
+
+        <div class="section-title small"><span class="dot"></span><span>Sector Target Times</span></div>
+        <div class="target-hint">e.g. <code>0520.10</code> → <strong>05:20.10</strong>（MMSS.CC）</div>
+        <div id="sections-edit-list" class="sections-edit-list">
+          <div class="splits-empty">Appears once you draw sector gates</div>
+        </div>
+
+      </div>
+      <footer class="modal-footer">
+        <button class="btn-cancel" data-action="close-detail">Cancel</button>
+        <button id="btn-save-detail" class="btn-primary">Save</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- ====== DRIVE SCREEN ====== -->
+  <section id="screen-drive" class="screen">
+    <header class="topbar drive-topbar">
+      <button class="icon-btn" data-action="exit-drive">‹</button>
+      <div class="drive-title">
+        <span id="drive-course-name">--</span>
+        <span class="drive-state" id="drive-state">Ready</span>
+      </div>
+      <div class="gps-indicator" id="gps-indicator">
+        <span class="gps-dot"></span>
+        <span id="gps-acc">--</span>
+      </div>
+      <div class="obd-indicator" id="obd-indicator" title="OBD2 Status">
+        <span class="obd-dot"></span>
+        <span class="obd-label">OBD</span>
+      </div>
+    </header>
+
+    <main class="drive-main">
+
+      <!-- ─── 縦画面 (現状のレイアウト) ─── -->
+      <div class="drive-portrait-only">
+
+      <button id="btn-start-stop" class="big-action start">START</button>
+
+      <div class="status-grid">
+        <div class="status-cell">
+          <div class="status-label">LAP</div>
+          <div id="lap-count" class="status-value">0</div>
+        </div>
+        <div class="status-cell">
+          <div class="status-label">FINISH</div>
+          <div id="finish-countdown" class="status-value mono">--:--.--</div>
+        </div>
+        <div class="status-cell">
+          <div class="status-label">RECORD</div>
+          <div id="best-lap-time" class="status-value mono accent">--:--.---</div>
+        </div>
+        <div class="status-cell">
+          <div class="status-label">LAST</div>
+          <div id="last-lap-time" class="status-value mono">--:--.---</div>
+        </div>
+      </div>
+
+      <div id="next-sector-display" class="next-sector">
+        <div class="ns-label">to NEXT SECTOR</div>
+        <div id="next-sector-value" class="ns-value">--:--.--</div>
+      </div>
+
+      <div id="best-delta-display" class="best-delta hidden">
+        <span class="bd-label">BEST Δ</span>
+        <span id="best-delta-value" class="bd-value">--</span>
+      </div>
+
+      <div class="now-sector-row">
+        <span class="ns-bar-label">SECTOR</span>
+        <span id="now-sector-num" class="ns-bar-num">1</span>
+      </div>
+      <div class="big-timer">
+        <div id="current-lap-time" class="time-display">00:00.000</div>
+      </div>
+
+      <!-- ─── コースマップ + G-ball 横並び ─── -->
+      <div class="map-gball-row">
+        <div class="course-map-cell">
+          <canvas id="course-canvas" width="640" height="420"></canvas>
+          <div class="course-map-legend">
+            <span class="cm-legend-item"><span class="cm-dot cm-dot-now"></span>Now</span>
+            <span class="cm-legend-item"><span class="cm-dot cm-dot-best"></span>Best</span>
+          </div>
+        </div>
+
+        <div class="sensors-row">
+          <div class="sensor-cell gball-cell">
+            <canvas id="gball-canvas" width="320" height="320"></canvas>
+            <button id="btn-g-cal" class="g-cal-btn" title="Zero G calibration">ZERO</button>
+            <div class="g-text" id="g-text">0.00 G</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── 地図回転スライダー + Gボール値 ─── -->
+      <div class="map-rot-row">
+        <div class="map-rot-slider-wrap">
+          <span class="map-rot-icon">↻</span>
+          <input type="range" id="map-rot-slider" class="map-rot-slider"
+                 min="-180" max="180" step="1" value="0">
+          <span id="map-rot-label" class="map-rot-label">0°</span>
+        </div>
+        <div class="map-rot-gval" id="map-rot-gval">0.00 G</div>
+      </div>
+
+      <div id="splits-grid" class="splits-grid"></div>
+
+      <div class="drive-footer">
+        <button id="btn-export-csv" class="btn-ghost">Export CSV</button>
+        <button id="btn-dbg-portrait" class="btn-ghost">DBG</button>
+        <button id="btn-motion-perm" class="btn-ghost" style="display:none">Enable Sensors</button>
+      </div>
+
+      </div><!-- /.drive-portrait-only -->
+
+      <!-- ─── 横画面 GT DASH レイアウト ─── -->
+      <div class="drive-landscape-only" id="ls-dash">
+
+        <!-- 上段: ブランド + LED バー -->
+        <div class="ls-top">
+          <span class="ls-brand">藤井工藝</span>
+          <div id="ls-led-bar" class="ls-led-bar"></div>
+        </div>
+
+        <!-- ブーストバー -->
+        <div class="ls-boost-wrap" id="ls-boost-wrap">
+          <div class="ls-boost-header">
+            <span class="ls-boost-label">BOOST <small>kg/cm²</small></span>
+            <span id="ls-boost-val" class="ls-boost-val">---</span>
+          </div>
+          <div class="ls-boost-track"><div id="ls-boost-fill" class="ls-boost-fill"></div></div>
+          <div class="ls-boost-ticks" id="ls-boost-ticks"></div>
+        </div>
+
+        <!-- メイングリッド -->
+        <div class="ls-grid">
+
+          <!-- 左: タイム系 -->
+          <div class="ls-col ls-col-time">
+            <div class="ls-sector-head">
+              <span class="ls-sector-label">SECTOR</span>
+              <span id="ls-sector-num" class="ls-sector-num">1</span>
+            </div>
+            <div id="ls-current-time" class="ls-time-main">00:00.000</div>
+            <div class="ls-ns-label">To Next SECTOR</div>
+            <div id="ls-next-sector" class="ls-time-sub">--:--.--</div>
+            <div class="ls-rec-row">
+              <span class="ls-rec-label">RECORD</span>
+              <span id="ls-record" class="ls-rec-val">--:--.---</span>
+            </div>
+            <div class="ls-rec-row">
+              <span class="ls-rec-label">LATEST</span>
+              <span id="ls-latest" class="ls-rec-val">--:--.---</span>
+            </div>
+          </div>
+
+          <!-- 中: ギア + 温度 -->
+          <div class="ls-col ls-col-gear">
+            <div class="ls-panel ls-gear-panel">
+              <div class="ls-panel-label">GEAR</div>
+              <div id="ls-gear-val" class="ls-gear-val is-n">N</div>
+            </div>
+            <div class="ls-temp-row">
+              <span class="ls-temp-label">COOLANT TEMP</span>
+              <span class="ls-temp-val"><span id="ls-coolant">--</span> °C</span>
+            </div>
+            <div class="ls-temp-row">
+              <span class="ls-temp-label">OIL TEMP</span>
+              <span class="ls-temp-val"><span id="ls-oiltemp">--</span> °C</span>
+            </div>
+          </div>
+
+          <!-- 右: RPM + Boost/Lap + START -->
+          <div class="ls-col ls-col-rpm">
+            <div class="ls-panel ls-rpm-panel">
+              <div class="ls-panel-label">RPM</div>
+              <div id="ls-rpm-val" class="ls-rpm-val">0</div>
+            </div>
+            <div class="ls-mini-row">
+              <div class="ls-panel ls-mini" id="ls-boost-cell">
+                <div class="ls-panel-label accent">Boost</div>
+                <div class="ls-mini-val accent"><span id="ls-boost-big">-.-</span><small> kg/cm²</small></div>
+              </div>
+              <div class="ls-panel ls-mini ls-lap-cell">
+                <div class="ls-panel-label">LAP</div>
+                <div id="ls-lap" class="ls-mini-val">0</div>
+              </div>
+            </div>
+            <button id="ls-btn-start" class="ls-start-btn">START</button>
+          </div>
+
+        </div>
+
+        <!-- 下段: ステータスフッター -->
+        <div class="ls-footer">
+          <span class="ls-obd-wrap">OBD: <span id="ls-obd-chip" class="ls-obd-chip">Disconnected</span></span>
+          <span class="ls-gps-wrap">GPS <span id="ls-gps-acc">--</span></span>
+          <span class="ls-footer-spacer"></span>
+          <button id="ls-btn-dbg" class="ls-foot-btn">DBG</button>
+          <button id="ls-btn-cfg" class="ls-foot-btn">CFG</button>
+          <button id="ls-btn-exit" class="ls-foot-btn">‹</button>
+        </div>
+
+      </div><!-- /.drive-landscape-only -->
+
+    </main>
+  </section>
+  <!-- ─── デバッグオーバーレイ (GT_DASH 互換) ─── -->
+  <div id="dbg-overlay"></div>
+
+  <div id="toast" class="toast"></div>
+
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+
+  <script src="app.js?v=3.1.0"></script>
+</body>
+</html>

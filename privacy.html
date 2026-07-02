@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0a0c10" />
+  <title>Privacy Policy / プライバシーポリシー — WADACHI</title>
+  <meta name="description" content="WADACHI のプライバシーポリシー。位置情報・加速度センサーは端末内で処理され、開発元サーバには一切送信されません。" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <style>
+    :root {
+      --bg: #0a0c10;
+      --bg-elev: #14171d;
+      --bg-elev-2: #1c2028;
+      --border: #2a2f3a;
+      --border-strong: #3a4150;
+      --fg: #e8e6df;
+      --fg-dim: #8a91a0;
+      --fg-faint: #4a5160;
+      --accent: #ffb000;
+      --accent-dim: #b88000;
+      --link: #4fc3f7;
+      --font-sans: 'IBM Plex Sans', 'Noto Sans JP', system-ui, sans-serif;
+      --font-mono: 'IBM Plex Mono', ui-monospace, 'Courier New', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--font-sans);
+      font-size: 16px;
+      line-height: 1.75;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255, 176, 0, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 176, 0, 0.02) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrap {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 32px 24px 80px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ===== Header ===== */
+    header.page-head {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 28px;
+      margin-bottom: 36px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-mono);
+      margin-bottom: 6px;
+    }
+    .brand-mark { color: var(--accent); font-size: 20px; }
+    .brand-name {
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      font-size: 16px;
+    }
+    .brand-meta {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--fg-dim);
+      letter-spacing: 0.12em;
+      margin-bottom: 28px;
+    }
+
+    h1 {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      font-size: 28px;
+      letter-spacing: 0.05em;
+      color: var(--fg);
+      margin-bottom: 6px;
+    }
+    .h1-sub {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--fg-dim);
+      letter-spacing: 0.1em;
+      margin-bottom: 18px;
+    }
+
+    /* Language toggle */
+    .lang-toggle {
+      display: inline-flex;
+      gap: 0;
+      border: 1px solid var(--border-strong);
+      border-radius: 4px;
+      overflow: hidden;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.1em;
+    }
+    .lang-toggle button {
+      background: transparent;
+      border: none;
+      color: var(--fg-dim);
+      padding: 8px 16px;
+      cursor: pointer;
+      font: inherit;
+      letter-spacing: inherit;
+    }
+    .lang-toggle button.active {
+      background: var(--accent);
+      color: #1a1300;
+      font-weight: 600;
+    }
+    .lang-toggle button:not(.active):hover { color: var(--fg); background: var(--bg-elev); }
+
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 20px;
+    }
+    .meta-dates {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--fg-faint);
+      letter-spacing: 0.08em;
+      line-height: 1.8;
+    }
+    .meta-dates strong { color: var(--fg-dim); font-weight: 500; }
+
+    /* ===== Sections ===== */
+    section.lang-block {
+      display: none;
+    }
+    section.lang-block.active {
+      display: block;
+    }
+
+    .preamble {
+      background: var(--bg-elev);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 4px;
+      padding: 16px 20px;
+      margin-bottom: 28px;
+      font-size: 14px;
+      line-height: 1.8;
+      color: var(--fg);
+    }
+
+    h2 {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      font-size: 14px;
+      letter-spacing: 0.18em;
+      color: var(--accent);
+      margin: 32px 0 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      text-transform: uppercase;
+    }
+    h2 .num {
+      display: inline-block;
+      color: var(--accent-dim);
+      margin-right: 10px;
+    }
+
+    h3 {
+      font-family: var(--font-sans);
+      font-weight: 600;
+      font-size: 15px;
+      color: var(--fg);
+      margin: 18px 0 8px;
+    }
+
+    p, li {
+      font-size: 14.5px;
+      line-height: 1.85;
+      color: var(--fg);
+      margin-bottom: 12px;
+    }
+
+    ul, ol {
+      padding-left: 22px;
+      margin-bottom: 14px;
+    }
+    ul li, ol li {
+      margin-bottom: 8px;
+    }
+
+    a {
+      color: var(--link);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(79, 195, 247, 0.3);
+      transition: border-color 0.15s;
+    }
+    a:hover { border-bottom-color: var(--link); }
+
+    code {
+      font-family: var(--font-mono);
+      background: var(--bg-elev-2);
+      color: var(--accent);
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-size: 0.9em;
+    }
+
+    strong { color: var(--fg); font-weight: 600; }
+
+    /* Highlighted callout */
+    .callout {
+      background: rgba(255, 176, 0, 0.06);
+      border: 1px solid rgba(255, 176, 0, 0.3);
+      border-radius: 4px;
+      padding: 12px 16px;
+      margin: 14px 0;
+      font-size: 13.5px;
+      line-height: 1.8;
+    }
+    .callout strong { color: var(--accent); }
+
+    /* Third-party service table */
+    .svc-list {
+      background: var(--bg-elev);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 4px 0;
+      margin: 16px 0;
+    }
+    .svc-item {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 16px;
+      padding: 12px 16px;
+      border-bottom: 1px dotted var(--border);
+      font-size: 13.5px;
+    }
+    .svc-item:last-child { border-bottom: none; }
+    .svc-name {
+      font-family: var(--font-mono);
+      color: var(--accent);
+      font-size: 12px;
+      letter-spacing: 0.05em;
+    }
+    .svc-desc { color: var(--fg-dim); line-height: 1.7; }
+    .svc-desc a { font-size: 12px; }
+    @media (max-width: 560px) {
+      .svc-item { grid-template-columns: 1fr; gap: 4px; padding: 14px 16px; }
+    }
+
+    /* ===== Footer ===== */
+    footer.page-foot {
+      margin-top: 60px;
+      padding-top: 28px;
+      border-top: 1px solid var(--border);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--fg-faint);
+      letter-spacing: 0.08em;
+      line-height: 1.9;
+      text-align: center;
+    }
+    footer.page-foot a { font-size: 11px; }
+
+    /* Mobile tweaks */
+    @media (max-width: 560px) {
+      .wrap { padding: 24px 18px 60px; }
+      h1 { font-size: 22px; }
+      h2 { font-size: 12px; letter-spacing: 0.15em; }
+      .meta-row { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="wrap">
+
+    <header class="page-head">
+      <div class="brand">
+        <span class="brand-mark">◢</span>
+        <span class="brand-name">WADACHI</span>
+      </div>
+      <div class="brand-meta"><a href="https://fuziikogei.handcrafted.jp/" target="_blank" rel="noopener">藤井工藝</a> / Ver.3.0</div>
+
+      <h1 data-jp="プライバシーポリシー" data-en="Privacy Policy">プライバシーポリシー</h1>
+      <div class="h1-sub" data-jp="Privacy Policy" data-en="プライバシーポリシー">Privacy Policy</div>
+
+      <div class="meta-row">
+        <div class="lang-toggle" role="tablist" aria-label="Language">
+          <button id="btn-ja" class="active" data-lang="ja" role="tab" aria-selected="true">日本語</button>
+          <button id="btn-en" data-lang="en" role="tab" aria-selected="false">English</button>
+        </div>
+        <div class="meta-dates">
+          <div data-jp="<strong>制定日:</strong> 2026年5月12日" data-en="<strong>Effective:</strong> May 12, 2026">
+            <strong>制定日:</strong> 2026年5月12日
+          </div>
+          <div data-jp="<strong>最終更新日:</strong> 2026年6月18日" data-en="<strong>Last updated:</strong> June 18, 2026">
+            <strong>最終更新日:</strong> 2026年6月18日
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ============================================================
+         JAPANESE
+         ============================================================ -->
+    <section class="lang-block ja active">
+
+      <div class="preamble">
+        藤井工藝（以下「当方」）は、当方が提供するアプリケーション「WADACHI」（以下「本アプリ」）における、利用者の個人情報の取り扱いについて、以下のとおりプライバシーポリシーを定めます。
+      </div>
+
+      <h2><span class="num">第1条</span>基本方針</h2>
+      <p>
+        本アプリは、GPS および加速度センサー、ならびに利用者の選択によるBluetooth経由のOBD2車両データ取得機能を用いたタイムアタック計測機能を提供します。本アプリで取り扱うすべての情報は、<strong>利用者の端末内でのみ処理</strong>され、当方が運営するサーバーへ送信されることは一切ありません。
+      </p>
+
+      <h2><span class="num">第2条</span>取得する情報</h2>
+      <p>本アプリは、機能提供のために利用者の端末上で以下の情報を利用します。</p>
+
+      <h3>1. 位置情報（GPS）</h3>
+      <p>
+        ブラウザの <code>Geolocation API</code> を通じて、計測中に高精度の位置情報を継続的に取得します。これは、利用者が設定したスタート線・フィニッシュ線・セクション線の通過判定、走行軌跡の表示、CSV 記録に使用されます。
+      </p>
+
+      <h3>2. 加速度センサー情報</h3>
+      <p>
+        ブラウザの <code>DeviceMotion API</code> を通じて、横 G・前後 G の値を取得します。G ボール表示および CSV 記録に使用されます。
+      </p>
+
+      <h3>3. 端末ローカル保存情報</h3>
+      <p>
+        利用者が作成したコース設定（名称・スタート線座標・セクション座標・目標タイム等）およびベストラップ記録は、ブラウザの <code>localStorage</code> に保存されます。
+      </p>
+
+      <h3>4. Bluetooth接続情報（OBD2車両データ）</h3>
+      <p>
+        利用者が選択した場合、本アプリはブラウザの <code>Web Bluetooth API</code> を通じて市販の OBD2 Bluetooth アダプターに接続し、エンジン回転数・水温・油温・ブースト圧等の車両データを取得します。この機能は利用者が明示的に接続操作を行った場合にのみ動作し、取得したデータはダッシュボード表示および CSV 記録にのみ使用されます。
+
+      <div class="callout">
+        <strong>重要:</strong> 上記いずれの情報も、当方のサーバーへ送信されることはありません。すべての処理は利用者の端末内で完結します。
+      </div>
+
+      <h2><span class="num">第3条</span>情報の利用目的</h2>
+      <p>取得した情報は、以下の目的でのみ利用されます。</p>
+      <ul>
+        <li>GPS による計測ライン通過判定およびラップタイム算出</li>
+        <li>セクション別スプリットタイムおよびベストラップとの差分表示</li>
+        <li>G フォース・速度の可視化</li>
+        <li>コース設定・走行履歴の保持</li>
+        <li>OBD2接続時の車両情報（回転数・水温・油温・ブースト圧等）のダッシュボード表示</li>
+        <li>利用者操作による CSV ファイル出力</li>
+      </ul>
+
+      <h2><span class="num">第4条</span>第三者への提供</h2>
+      <p>
+        当方は、利用者の位置情報・加速度センサー情報・Bluetooth経由で取得した車両データ・コース設定情報を、いかなる第三者にも提供しません。これらの情報は、すべて利用者の端末内でのみ処理されます。
+      </p>
+
+      <h2><span class="num">第5条</span>第三者サービスの利用について</h2>
+      <p>
+        本アプリは、機能提供のため、以下の第三者サービスを利用します。これらサービスの利用に伴い、利用者の IP アドレス・ブラウザ情報・大まかな位置情報などが各サービス提供者に送信される場合があります。
+      </p>
+
+      <div class="svc-list">
+        <div class="svc-item">
+          <div class="svc-name">OpenStreetMap</div>
+          <div class="svc-desc">
+            地図タイル画像の取得。地図表示時に、表示中の地点情報がタイルサーバーに送信されます。<br>
+            <a href="https://wiki.osmfoundation.org/wiki/Privacy_Policy" target="_blank" rel="noopener">OSMF プライバシーポリシー →</a>
+          </div>
+        </div>
+        <div class="svc-item">
+          <div class="svc-name">Google Fonts</div>
+          <div class="svc-desc">
+            Web フォント（IBM Plex / Noto Sans JP）の配信。<br>
+            <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google プライバシーポリシー →</a>
+          </div>
+        </div>
+        <div class="svc-item">
+          <div class="svc-name">unpkg.com (Cloudflare)</div>
+          <div class="svc-desc">
+            地図ライブラリ Leaflet.js の配信 CDN。<br>
+            <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener">Cloudflare プライバシーポリシー →</a>
+          </div>
+        </div>
+        <div class="svc-item">
+          <div class="svc-name">GitHub Pages</div>
+          <div class="svc-desc">
+            本アプリのホスティング。アクセス時に IP アドレス等の標準的なアクセスログが GitHub 側に記録されます。<br>
+            <a href="https://docs.github.com/ja/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener">GitHub プライバシーポリシー →</a>
+          </div>
+        </div>
+      </div>
+
+      <p>
+        これらサービスの利用に関するプライバシー慣行については、各サービス提供者のプライバシーポリシーをご確認ください。当方は、第三者サービスのプライバシー慣行について責任を負いません。
+      </p>
+
+      <h2><span class="num">第6条</span>データの削除</h2>
+      <p>利用者は、以下の方法でいつでも本アプリ内のデータを削除できます。</p>
+      <ul>
+        <li>本アプリ内のコース削除機能による個別削除</li>
+        <li>ブラウザの「サイトデータを消去」機能による一括削除</li>
+        <li>ホーム画面に追加した本アプリのアンインストール</li>
+      </ul>
+
+      <h2><span class="num">第7条</span>権限の利用について</h2>
+      <p>本アプリは、機能提供のため以下の端末権限の許可をお願いする場合があります。</p>
+      <ul>
+        <li><strong>位置情報</strong>: 計測ライン通過判定のために必須です。許可されない場合、計測機能は利用できません。</li>
+        <li><strong>モーションセンサー</strong>: G ボール表示のために使用します。許可されない場合、G ボールは動作しませんが、他の機能は利用可能です。</li>
+        <li><strong>Bluetooth</strong>: OBD2 アダプターとの接続に使用します。許可されない場合、OBD2 関連機能（車両データ表示）は利用できませんが、他の機能は利用可能です。</li>
+        <li><strong>画面の常時表示（Wake Lock）</strong>: 走行中の画面消灯を防ぐために使用します。</li>
+      </ul>
+
+      <h2><span class="num">第8条</span>安全管理措置</h2>
+      <p>
+        本アプリで取り扱う情報はすべて利用者の端末内で処理されるため、通信経路上での情報漏洩リスクは原理的に存在しません。ただし、利用者の端末そのもののセキュリティ管理（画面ロック・生体認証等）は、利用者ご自身で適切に管理いただく必要があります。
+      </p>
+
+      <h2><span class="num">第9条</span>未成年者の利用</h2>
+      <p>
+        本アプリは、自動車・モータースポーツに関連する用途を想定しており、18 歳未満の方の単独での利用は推奨しません。13 歳未満の方が利用される場合は、必ず保護者の同意のもとでご利用ください。
+      </p>
+
+      <h2><span class="num">第10条</span>免責事項</h2>
+      <p>
+        本アプリは、GPS の精度・端末性能・電波状況等により計測誤差が生じる場合があります。当方は、本アプリの計測結果の正確性を保証するものではなく、本アプリの利用により生じたいかなる損害についても責任を負いません。
+      </p>
+      <p>
+        また、本アプリは公道での運転中の操作を想定していません。安全運転に支障をきたす使用方法による事故等について、当方は一切の責任を負いません。
+      </p>
+
+      <h2><span class="num">第11条</span>ポリシーの変更</h2>
+      <p>
+        当方は、必要に応じて本ポリシーを改定することがあります。改定後のポリシーは、本ページに掲載された時点から効力を生じるものとします。重要な変更がある場合は、本アプリ内または本ページ上で告知します。
+      </p>
+
+      <h2><span class="num">第12条</span>お問い合わせ</h2>
+      <p>本ポリシーに関するお問い合わせは、以下までご連絡ください。</p>
+      <p>
+        <strong>事業者名:</strong> 藤井工藝<br>
+        <strong>ウェブサイト:</strong> <a href="https://fuziikogei.handcrafted.jp/" target="_blank" rel="noopener">https://fuziikogei.handcrafted.jp/</a><br>
+        <strong>連絡先:</strong> <code>fuziikogei@gmail.com</code>
+      </p>
+
+    </section>
+
+    <!-- ============================================================
+         ENGLISH
+         ============================================================ -->
+    <section class="lang-block en">
+
+      <div class="preamble">
+        Fujii Kogei ("we", "us") establishes the following Privacy Policy regarding the handling of user information in our application "WADACHI" (the "App").
+      </div>
+
+      <h2><span class="num">1.</span>Basic Policy</h2>
+      <p>
+        The App provides time-attack measurement using GPS and accelerometer sensors, as well as optional OBD2 vehicle data retrieval via Bluetooth at the user's discretion. All information handled by the App is <strong>processed exclusively on the user's device</strong> and is never transmitted to any server operated by us.
+      </p>
+
+      <h2><span class="num">2.</span>Information Collected</h2>
+      <p>The App uses the following information on the user's device to provide its functionality.</p>
+
+      <h3>1. Location Information (GPS)</h3>
+      <p>
+        The App continuously obtains high-accuracy location data through the browser's <code>Geolocation API</code> during measurement. This is used to detect crossings of user-defined start, finish, and section lines, display the driving trace, and produce CSV recordings.
+      </p>
+
+      <h3>2. Motion Sensor Data</h3>
+      <p>
+        The App obtains lateral and longitudinal G-force values through the browser's <code>DeviceMotion API</code>. This is used for the G-ball display and CSV recording.
+      </p>
+
+      <h3>3. Locally Stored Information</h3>
+      <p>
+        Course configurations (name, start/section coordinates, target times, etc.) and best lap records created by the user are stored in the browser's <code>localStorage</code>.
+      </p>
+
+      <h3>4. Bluetooth Connection Data (OBD2 Vehicle Data)</h3>
+      <p>
+        At the user's discretion, the App can connect to a commercially available OBD2 Bluetooth adapter via the browser's <code>Web Bluetooth API</code> to retrieve vehicle data such as engine RPM, coolant temperature, oil temperature, and boost pressure. This feature only operates when the user explicitly initiates a connection, and the retrieved data is used solely for dashboard display and CSV recording.
+
+      <div class="callout">
+        <strong>Important:</strong> None of the above information is ever transmitted to our servers. All processing is completed on the user's device.
+      </div>
+
+      <h2><span class="num">3.</span>Purpose of Use</h2>
+      <p>The collected information is used solely for the following purposes.</p>
+      <ul>
+        <li>GPS-based line-crossing detection and lap-time calculation</li>
+        <li>Display of section split times and deltas against best laps</li>
+        <li>Visualization of G-force and speed</li>
+        <li>Persistence of course settings and lap history</li>
+        <li>Dashboard display of vehicle data (RPM, coolant/oil temperature, boost pressure, etc.) when connected via OBD2</li>
+        <li>CSV file export upon user request</li>
+      </ul>
+
+      <h2><span class="num">4.</span>Disclosure to Third Parties</h2>
+      <p>
+        We do not provide users' location data, motion sensor data, vehicle data obtained via Bluetooth, or course settings to any third party. All such information is processed exclusively on the user's device.
+      </p>
+
+      <h2><span class="num">5.</span>Third-Party Services</h2>
+      <p>
+        The App uses the following third-party services to provide its functionality. When these services are used, the user's IP address, browser information, and approximate location may be transmitted to each service provider.
+      </p>
+
+      <div class="svc-list">
+        <div class="svc-item">
+          <div class="svc-name">OpenStreetMap</div>
+          <div class="svc-desc">
+            Map tile imagery. Information about the displayed area is sent to the tile server when maps are rendered.<br>
+            <a href="https://wiki.osmfoundation.org/wiki/Privacy_Policy" target="_blank" rel="noopener">OSMF Privacy Policy →</a>
+          </div>
+        </div>
+        <div class="svc-item">
+          <div class="svc-name">Google Fonts</div>
+          <div class="svc-desc">
+            Web font delivery (IBM Plex / Noto Sans JP).<br>
+            <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google Privacy Policy →</a>
+          </div>
+        </div>
+        <div class="svc-item">
+          <div class="svc-name">unpkg.com (Cloudflare)</div>
+          <div class="svc-desc">
+            CDN delivery of the Leaflet.js mapping library.<br>
+            <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener">Cloudflare Privacy Policy →</a>
+          </div>
+        </div>
+        <div class="svc-item">
+          <div class="svc-name">GitHub Pages</div>
+          <div class="svc-desc">
+            Hosting of the App. Standard access logs (including IP address) are recorded by GitHub.<br>
+            <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener">GitHub Privacy Statement →</a>
+          </div>
+        </div>
+      </div>
+
+      <p>
+        Please refer to each provider's privacy policy for details on their privacy practices. We are not responsible for the privacy practices of third-party services.
+      </p>
+
+      <h2><span class="num">6.</span>Data Deletion</h2>
+      <p>Users may delete data within the App at any time using the following methods.</p>
+      <ul>
+        <li>Individual deletion via the in-App course delete function</li>
+        <li>Bulk deletion via the browser's "Clear site data" function</li>
+        <li>Uninstallation of the App from the device's home screen</li>
+      </ul>
+
+      <h2><span class="num">7.</span>Device Permissions</h2>
+      <p>The App may request the following device permissions to provide its functionality.</p>
+      <ul>
+        <li><strong>Location</strong>: Required for line-crossing detection. Without permission, the measurement function cannot be used.</li>
+        <li><strong>Motion Sensors</strong>: Used for G-ball display. Without permission, the G-ball will not operate, but other functions remain available.</li>
+        <li><strong>Bluetooth</strong>: Used to connect to OBD2 adapters. Without permission, OBD2-related features (vehicle data display) cannot be used, but other functions remain available.</li>
+        <li><strong>Screen Wake Lock</strong>: Used to prevent the screen from sleeping during measurement.</li>
+      </ul>
+
+      <h2><span class="num">8.</span>Security Measures</h2>
+      <p>
+        Since all information handled by the App is processed on the user's device, there is no inherent risk of information leakage over communication channels. However, security management of the device itself (screen lock, biometric authentication, etc.) is the user's responsibility.
+      </p>
+
+      <h2><span class="num">9.</span>Use by Minors</h2>
+      <p>
+        The App is designed for automotive and motorsport-related use. We do not recommend independent use by individuals under 18 years of age. Users under 13 must obtain parental consent before use.
+      </p>
+
+      <h2><span class="num">10.</span>Disclaimer</h2>
+      <p>
+        Measurement errors may occur due to GPS accuracy, device performance, signal conditions, etc. We do not guarantee the accuracy of measurement results and assume no responsibility for any damages arising from use of the App.
+      </p>
+      <p>
+        The App is not intended for operation while driving on public roads. We assume no responsibility whatsoever for accidents caused by usage that compromises safe driving.
+      </p>
+
+      <h2><span class="num">11.</span>Policy Changes</h2>
+      <p>
+        We may revise this policy as needed. The revised policy takes effect from the time it is posted on this page. We will announce significant changes within the App or on this page.
+      </p>
+
+      <h2><span class="num">12.</span>Contact</h2>
+      <p>For inquiries regarding this policy, please contact us at:</p>
+      <p>
+        <strong>Business Name:</strong> Fujii Kogei (藤井工藝)<br>
+        <strong>Website:</strong> <a href="https://fuziikogei.handcrafted.jp/" target="_blank" rel="noopener">https://fuziikogei.handcrafted.jp/</a><br>
+        <strong>Contact:</strong> <code>[Please fill in email address]</code>
+      </p>
+
+    </section>
+
+    <footer class="page-foot">
+      <div>© 2026 藤井工藝 / Fujii Kogei — WADACHI</div>
+      <div style="margin-top:6px"><a href="./">← Back to WADACHI</a></div>
+    </footer>
+
+  </div>
+
+  <script>
+    // Language toggle
+    const blocksJa = document.querySelector('section.lang-block.ja');
+    const blocksEn = document.querySelector('section.lang-block.en');
+    const btnJa = document.getElementById('btn-ja');
+    const btnEn = document.getElementById('btn-en');
+    const h1 = document.querySelector('h1');
+    const h1Sub = document.querySelector('.h1-sub');
+    const dateDivs = document.querySelectorAll('.meta-dates > div');
+
+    function setLang(l) {
+      if (l === 'ja') {
+        blocksJa.classList.add('active');
+        blocksEn.classList.remove('active');
+        btnJa.classList.add('active'); btnJa.setAttribute('aria-selected','true');
+        btnEn.classList.remove('active'); btnEn.setAttribute('aria-selected','false');
+        document.documentElement.lang = 'ja';
+      } else {
+        blocksEn.classList.add('active');
+        blocksJa.classList.remove('active');
+        btnEn.classList.add('active'); btnEn.setAttribute('aria-selected','true');
+        btnJa.classList.remove('active'); btnJa.setAttribute('aria-selected','false');
+        document.documentElement.lang = 'en';
+      }
+      // Swap header/meta text via data attrs
+      h1.textContent      = h1.dataset[l];
+      h1Sub.textContent   = h1Sub.dataset[l];
+      dateDivs.forEach(d => d.innerHTML = d.dataset[l]);
+      try { localStorage.setItem('privacy.lang', l); } catch(_) {}
+    }
+
+    btnJa.addEventListener('click', () => setLang('ja'));
+    btnEn.addEventListener('click', () => setLang('en'));
+
+    // Restore prior choice
+    try {
+      const saved = localStorage.getItem('privacy.lang');
+      if (saved === 'en') setLang('en');
+    } catch(_) {}
+  </script>
+
+</body>
+</html>
