@@ -24,7 +24,7 @@
     rel="stylesheet"
   />
 
-  <link rel="stylesheet" href="styles.css?v=3.1.0" />
+  <link rel="stylesheet" href="styles.css?v=4.0.1" />
 </head>
 <body>
 
@@ -726,11 +726,15 @@ so inaccuracies may occur depending on the environment.</div>
             </div>
           </div>
 
-          <!-- 右: RPM + Boost/Lap + START -->
+          <!-- Right: RPM + Speed + Boost/Lap + START -->
           <div class="ls-col ls-col-rpm">
             <div class="ls-panel ls-rpm-panel">
               <div class="ls-panel-label">RPM</div>
               <div id="ls-rpm-val" class="ls-rpm-val">0</div>
+            </div>
+            <div class="ls-panel ls-speed-panel">
+              <div class="ls-panel-label">SPEED</div>
+              <div class="ls-speed-val"><span id="ls-speed-val">--</span><small> km/h</small></div>
             </div>
             <div class="ls-mini-row">
               <div class="ls-panel ls-mini" id="ls-boost-cell">
@@ -772,6 +776,6 @@ so inaccuracies may occur depending on the environment.</div>
     crossorigin=""
   ></script>
 
-  <script src="app.js?v=3.1.0"></script>
+  <script src="app.js?v=4.0.1"></script>
 </body>
 </html>

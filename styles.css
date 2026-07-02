@@ -1206,7 +1206,10 @@ body.landscape .drive-landscape-only {
   flex-direction: column;
   height: 100vh;
   height: 100dvh;
-  padding: 4px 10px calc(4px + var(--safe-bot));
+  padding: 4px
+           calc(10px + env(safe-area-inset-right, 0px))
+           calc(4px + env(safe-area-inset-bottom, 0px))
+           calc(10px + env(safe-area-inset-left, 0px));
   gap: 2px;
   background: #000;
 }
@@ -1214,12 +1217,17 @@ body.landscape .drive-landscape-only {
 /* ── 上段: ブランド + LED ── */
 .ls-top {
   flex: 0 0 auto;
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
   min-height: 24px;
 }
 .ls-brand {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
   font-style: italic;
   font-weight: 900;
   font-size: clamp(11px, 1.6vw, 15px);
@@ -1228,12 +1236,11 @@ body.landscape .drive-landscape-only {
   white-space: nowrap;
 }
 .ls-led-bar {
-  flex: 1;
+  flex: 0 1 auto;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: center;
   gap: clamp(4px, 1.4vw, 12px);
-  padding-right: 4px;
 }
 
 /* LED (GT DASH 原本移植) */
@@ -1299,7 +1306,7 @@ body.landscape .drive-landscape-only {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: 1.25fr 1fr 1fr;
+  grid-template-columns: 1.35fr 0.8fr 1.25fr;
   gap: 8px;
   padding-top: 2px;
 }
@@ -1415,21 +1422,43 @@ body.landscape .drive-landscape-only {
 .ls-temp-label { font-size: clamp(8px, 1.2vw, 11px); letter-spacing: 0.12em; color: var(--fg-dim); font-weight: 700; }
 .ls-temp-val   { font-family: var(--font-mono); font-weight: 700; font-size: clamp(11px, 1.8vw, 15px); color: var(--fg); }
 
-.ls-rpm-panel { flex: 1; }
-.ls-rpm-val {
-  flex: 1;
-  display: flex;
+.ls-rpm-panel {
+  flex: 0 0 auto;
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  padding: 4px 12px;
+  min-height: clamp(44px, 15vh, 68px);
+}
+.ls-rpm-panel .ls-panel-label { align-self: center; padding: 0; }
+.ls-rpm-val {
   font-family: var(--font-mono);
   font-weight: 900;
   font-style: italic;
-  font-size: clamp(36px, 9vh, 76px);
+  font-size: clamp(28px, 9vh, 52px);
   line-height: 1;
   color: #fff;
-  width: 100%;
 }
 .ls-rpm-val.warn { color: var(--red); }
+
+.ls-speed-panel {
+  flex: 1;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 12px;
+  min-height: 0;
+}
+.ls-speed-panel .ls-panel-label { align-self: center; padding: 0; }
+.ls-speed-val {
+  font-family: var(--font-mono);
+  font-weight: 900;
+  font-style: italic;
+  font-size: clamp(24px, 8vh, 46px);
+  line-height: 1;
+  color: #fff;
+}
+.ls-speed-val small { font-size: 0.4em; font-weight: 700; color: var(--fg-dim); font-style: normal; }
 
 .ls-mini-row { flex: 0 0 auto; display: flex; gap: 5px; min-height: 44px; }
 .ls-mini { flex: 1; padding-bottom: 3px; }

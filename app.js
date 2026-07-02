@@ -2619,6 +2619,12 @@ window.addEventListener('error', function(e) {
       }
       updateLeds();
       updateBoost();
+      // 車速 (ギア検出と同じソースを使用)
+      const spdEl = document.getElementById('ls-speed-val');
+      if (spdEl) {
+        const spd = currentSpeedKmh();
+        spdEl.textContent = spd >= 0 ? String(Math.round(spd)) : '--';
+      }
       // ギア
       detectGear();
       const gEl = document.getElementById('ls-gear-val');
