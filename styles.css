@@ -1564,9 +1564,10 @@ body.landscape .drive-landscape-only {
   background-color: transparent;
   outline: none;
 }
-/* 玉を完全な円に: 下地のみ透明化し、丸は border-radius:50% のクリップで表現 */
+/* 玉を完全な円に: clip-path で描画全体を真円クリップし、角塗り・下地の四角を幾何学的に排除 */
 .led.dash-swatch {
   background-color: transparent;
+  clip-path: circle(50%);
 }
 /* 非選択: 消灯風に減光（発色は残しつつ暗く沈める＝チカチカ防止） */
 .led.dash-swatch:not(.selected) {
