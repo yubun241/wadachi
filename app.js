@@ -128,13 +128,13 @@ window.addEventListener('error', function(e) {
   // FORMAT HELPERS
   // ============================================================
   function formatTime(ms) {
-    if (ms == null || !isFinite(ms)) return '--:--.---';
+    if (ms == null || !isFinite(ms)) return '--:--.--';
     const sign = ms < 0 ? '-' : '';
     ms = Math.abs(ms);
     const m = Math.floor(ms / 60000);
     const s = Math.floor((ms % 60000) / 1000);
-    const ms3 = Math.floor(ms % 1000);
-    return `${sign}${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${String(ms3).padStart(3, '0')}`;
+    const cs = Math.floor((ms % 1000) / 10);
+    return `${sign}${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${String(cs).padStart(2, '0')}`;
   }
 
   function formatTimeShort(ms) {
@@ -532,7 +532,7 @@ window.addEventListener('error', function(e) {
     state.courses.forEach(c => {
       const card = document.createElement('div');
       card.className = 'course-card';
-      const best = c.bestLap ? formatTime(c.bestLap.totalMs) : '--:--.---';
+      const best = c.bestLap ? formatTime(c.bestLap.totalMs) : '--:--.--';
       const bestCls = c.bestLap ? '' : 'none';
       const sectionCount = (c.sections || []).length;
       const hasLines = c.startLine && (c.type === 'circuit' || c.finishLine);
@@ -1252,7 +1252,7 @@ window.addEventListener('error', function(e) {
     const bestMs = (s.bestLapIdx >= 0 && s.laps[s.bestLapIdx])
       ? s.laps[s.bestLapIdx].totalMs : null;
     document.getElementById('session-best').textContent =
-      bestMs ? formatTime(bestMs) : '--:--.---';
+      bestMs ? formatTime(bestMs) : '--:--.--';
 
     const durSec = Math.round((s.endTime - s.startTime) / 1000);
     const hh = Math.floor(durSec / 3600);
@@ -3413,10 +3413,10 @@ window.addEventListener('error', function(e) {
     state.prevFix = null;
     state.currentSpeedMS = -1;
 
-    document.getElementById('current-lap-time').textContent = '00:00.000';
+    document.getElementById('current-lap-time').textContent = '00:00.00';
     document.getElementById('finish-countdown').textContent = '--:--.--';
     document.getElementById('lap-count').textContent = '0';
-    document.getElementById('last-lap-time').textContent = '--:--.---';
+    document.getElementById('last-lap-time').textContent = '--:--.--';
     document.getElementById('next-sector-value').textContent = '--:--.--';
     document.getElementById('next-sector-value').className = 'ns-value';
     document.getElementById('best-delta-display').classList.add('hidden');
@@ -3424,7 +3424,7 @@ window.addEventListener('error', function(e) {
 
     const c = getActiveCourse();
     document.getElementById('best-lap-time').textContent =
-      c?.bestLap ? formatTime(c.bestLap.totalMs) : '--:--.---';
+      c?.bestLap ? formatTime(c.bestLap.totalMs) : '--:--.--';
   }
 
   function setDriveState(text, cls) {
@@ -3808,7 +3808,7 @@ window.addEventListener('error', function(e) {
     const addItem = (idx, label, splitMs, bestMs, isLive) => {
       const item = document.createElement('div');
       item.className = 'split-item';
-      let timeText = '--:--.---', deltaText = '', deltaCls = '';
+      let timeText = '--:--.--', deltaText = '', deltaCls = '';
       if (splitMs != null) {
         timeText = formatTime(splitMs);
         if (bestMs != null) {
