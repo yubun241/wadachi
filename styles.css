@@ -1561,6 +1561,18 @@ body.landscape .drive-landscape-only {
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   flex-shrink: 0;
+  background-color: transparent;
+  outline: none;
+}
+/* 玉を完全な円に: グラデーション外周を透明化し、四角い塗り込みを消す */
+.led.dash-swatch {
+  background:
+    radial-gradient(circle at 32% 28%,
+      var(--led-glow-hi, #3a3a3a) 0%,
+      var(--led-glow-mid, #202020) 40%,
+      var(--led-glow-core, #0a0a0a) 70%,
+      transparent 71%) center / 100% 100% no-repeat;
+  background-color: transparent;
 }
 /* 非選択: 消灯風に減光（発色は残しつつ暗く沈める＝チカチカ防止） */
 .led.dash-swatch:not(.selected) {
